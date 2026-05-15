@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+    # laravel
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: facebook_app
+        restart: unless-stopped
+        volumes:
+            - .:/var/www/html
+        command: php artisan serve --host=0.0.0.0 --port=8000
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+            - minio
+        networks:
+            - facebook_network
+
+    # 2. postgres
+    db:
+        image: postgres:15
+        container_name: facebook_postgres
+        environment:
+            POSTGRES_DB: facebook
+            POSTGRES_USER: sysfacebook
+            POSTGRES_PASSWORD: 123456
+        ports:
+            - "5432:5432"
+        networks:
+            - facebook_network
+
+    # minio
+    minio:
+        image: minio/minio
+        container_name: facebook
+        restart: unless-stopped
+        ports:
+            - "9000:9000" # api minio
+            - "9001:9001"
+        environment:
+            MINIO_ROOT_USER: minio_facebook_user
+            MINIO_ROOT_PASSWORD: minio_facebook_password
+            MINIO_BROWSER: "on"
+        command: server /data --console-address ":9001"
+        volumes:
+            - minio_data:/data
+        networks:
+            - facebook_network
+
+networks:
+    facebook_network:
+        driver: bridge
+
+volumes:
+    postgres_data:
+        driver: local
+    minio_data:
+        driver: local

@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  app:
+    image: facebook-web-app
+    container_name: facebook_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db 
+      - minio
+
+  db:
+    image: facebookdb
+    container_name: facebook_postgres
+    ports:
+      - "5432:5432"
+
+  # MINIO
+  minio:
+    image: minio/minio
+    container_name: facebook
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
